@@ -103,7 +103,7 @@ class Slider:
         return outputList[self.val]
 
 
-# tap locations for the contanenated registers
+# tap locations for the concatanenated registers
 # they could just be ints
 A = Slider()
 B = Slider()
