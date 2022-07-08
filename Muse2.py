@@ -94,8 +94,12 @@ class Slider:
         return str(self.val)
 
     def output(self):
-        outputList = [0, 1] + self.binaryCounter.digits + \
-            self.tripleCounter.digits + self.stack.items
+        outputList = (
+            [0, 1]
+            + self.binaryCounter.digits
+            + self.tripleCounter.digits
+            + self.stack.items
+        )
         return outputList[self.val]
 
 
@@ -113,6 +117,7 @@ Z = Slider()
 allSliders = [A, B, C, D, W, X, Y, Z]
 
 
+# this should use yield
 def triggerAll(
     root_hz,
     sliderList=allSliders,
@@ -131,7 +136,7 @@ def triggerAll(
     stack.write((w + x + y + z) % 2)
 
     intervals = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 24]
-    scale_degree = 8*d + 4*c + 2*b + a
+    scale_degree = 8 * d + 4 * c + 2 * b + a
     half_step_ratio = 1.05946882217
     noteFrequency = root_hz * half_step_ratio ** intervals[scale_degree]
     print(scale_degree)
@@ -157,8 +162,6 @@ root_hz = 261.6
 bpm = 240
 
 """ End of user-operated variables """
-
-# sound
 
 seconds = 60.0 / bpm
 
