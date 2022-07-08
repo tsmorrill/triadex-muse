@@ -68,6 +68,7 @@ class TripleCounter:
     def __str__(self):
         return str(self.digits)
 
+    # may have gone too zealous rewriting this part - check documentation
     def trigger(self):
         # reset if everything is 1
         for location in range(len(self.digits)):
