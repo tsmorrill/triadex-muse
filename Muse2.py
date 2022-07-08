@@ -16,7 +16,7 @@ Change variables under "Use-operated variables" near the bottom of the program
 
 import random
 import time
-from pyo import *
+from pyo import Sine, Server
 
 # defining classes
 
