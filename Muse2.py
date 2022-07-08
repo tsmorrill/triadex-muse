@@ -122,10 +122,11 @@ class TripleCounter:
         # now the main activity of the function
         # reset if everything is 1
         for location in range(len(self.digits)):
-            if self.clock.val % (3*(location+1)) == 0:
+            if self.clock.val % (3 * (location + 1)) == 0:
                 self.digits[location] = switch(self.digits[location])
             else:
                 pass
+
 
 # creating shift register and binary counter
 
@@ -138,11 +139,9 @@ counter2 = TripleCounter(2)
 class Slider:
     # use in Muse: create 'A','B','C','D' (interval),'W','X','Y','Z' (theme) sliders
 
-    def __init__(self,
-                 val=0,
-                 binaryCounter=counter1,
-                 tripleCounter=counter2,
-                 stack=shiftRegister):
+    def __init__(
+        self, val=0, binaryCounter=counter1, tripleCounter=counter2, stack=shiftRegister
+    ):
         # initializes as a variable set to 0, i.e. "off"
         # binaryCounter and stack are what the sliders will pull values from
         self.val = val
@@ -180,7 +179,7 @@ def getNoteNum(inputList):
     # getNote outputs how many notes above the tonic the output note is
     num, exponent = 0, 0
     for i in inputList:
-        num += i * (2 ** exponent)
+        num += i * (2**exponent)
         exponent += 1
     return num
 
@@ -192,6 +191,7 @@ def getNoteFrequency(key, noteNum):
     # convert placement in scale to Hz
     frequency = key * (1.05946882217 ** halfTones[noteNum])
     return frequency
+
 
 # creating interval and theme sliders, setting initial key
 
@@ -211,12 +211,14 @@ pitch = 261.6
 # a big function that pulses everything (clock, counters, shift register) "forwards" in time and returns a note
 
 
-def pulseAll(key=pitch,
-             sliderList=allSliders,
-             stack=shiftRegister,
-             clock=timer,
-             binaryCounter=counter1,
-             tripleCounter=counter2):
+def pulseAll(
+    key=pitch,
+    sliderList=allSliders,
+    stack=shiftRegister,
+    clock=timer,
+    binaryCounter=counter1,
+    tripleCounter=counter2,
+):
     # sliderList is list of sliders: first four interval, last four theme
     # call all slider values
     sliderVals = []
@@ -226,7 +228,7 @@ def pulseAll(key=pitch,
     clock.pulse()
     counter1.pulse()
     counter2.pulse()
-    parityIn = [sliderVals[i+4] for i in range(4)]
+    parityIn = [sliderVals[i + 4] for i in range(4)]
     parityOut = parityGen(parityIn)
     stack.pulse(parityOut)
     # get note, return in Hz
@@ -260,7 +262,7 @@ bpm = 240
 
 # sound
 
-seconds = 60.0/bpm
+seconds = 60.0 / bpm
 
 s = Server().boot()  # booting pyo server
 s.start()
