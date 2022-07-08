@@ -17,12 +17,11 @@ class Clock:
         self.val = 0
 
 
-timer = Clock()
+timer = Clock()  # one instance shared between all other objects
+# this could really just be a counter variable in the main loop
 
 
 class Stack:
-    # use in Muse: create with 31 bits
-
     def __init__(self, length):
         self.length = length
         self.items = [random.randint(0, 1) for i in range(self.length)]
@@ -37,8 +36,6 @@ class Stack:
 
 
 class BinaryCounter:
-    # use in Muse: create with five bits
-
     def __init__(self, length, clock=timer):
         self.length = length
         self.digits = [0 for i in range(length)]
@@ -62,8 +59,6 @@ class BinaryCounter:
 
 
 class TripleCounter:
-    # use in Muse: create with two bits
-
     def __init__(self, length, clock=timer):
         self.length = length
         self.digits = [0 for i in range(length)]
@@ -87,8 +82,6 @@ counter2 = TripleCounter(2)
 
 
 class Slider:
-    # use in Muse: create 'A','B','C','D' (interval),'W','X','Y','Z' (theme) sliders
-
     def __init__(
         self, val=0, binaryCounter=counter1, tripleCounter=counter2, stack=shiftRegister
     ):
@@ -112,13 +105,6 @@ class Slider:
         return outputList[self.val]
 
 
-def parityGen(inputList):
-    # inputList should be a binary, a list of the values of W through Z sliders
-    summedOuts = sum(inputList)
-    output = summedOuts % 2
-    return output
-
-
 def getNoteNum(inputList):
     """Return a scale degree."""
     # inputList should be binary, a list of the values of A through D sliders
@@ -127,15 +113,6 @@ def getNoteNum(inputList):
         num += i * (2**exponent)
         exponent += 1
     return num
-
-
-def getNoteFrequency(key, noteNum):
-    # key = tonic frequency, noteNum = placement in scale (e.g. 0 = tonic, 1 = whole step up)
-    # progression of half tone increases in a major scale
-    halfTones = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 24]
-    # convert to Hz
-    frequency = key * (1.05946882217 ** halfTones[noteNum])
-    return frequency
 
 
 A = Slider()
@@ -151,7 +128,7 @@ allSliders = [A, B, C, D, W, X, Y, Z]
 
 
 def pulseAll(
-    key,
+    root_hz,
     sliderList=allSliders,
     stack=shiftRegister,
     clock=timer,
@@ -159,22 +136,19 @@ def pulseAll(
     tripleCounter=counter2,
 ):
     """Pulse everything and return a frequency in Hz."""
-    # sliderList is list of sliders: first four interval, last four theme
-    # call all slider values
-    sliderVals = []
-    for slider in sliderList:
-        sliderVals.append(slider.output())
-    # pulse all forward
+    a, b, c, d, w, x, y, z = (slider.output() for slider in sliderList)
+
     clock.pulse()
     counter1.pulse()
     counter2.pulse()
-    parityIn = [sliderVals[i + 4] for i in range(4)]
-    parityOut = parityGen(parityIn)
-    stack.pulse(parityOut)
-    # get note, return in Hz
-    noteNum = getNoteNum([sliderVals[i] for i in range(4)])
-    noteFrequency = getNoteFrequency(key, noteNum)
-    print(noteNum)
+
+    stack.pulse((w + x + y + z) % 2)
+
+    intervals = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 24]
+    scale_degree = 8*d + 4*c + 2*b + a
+    half_step_ratio = 1.05946882217
+    noteFrequency = root_hz * half_step_ratio ** intervals[scale_degree]
+    print(scale_degree)
     return noteFrequency
 
 
@@ -192,8 +166,7 @@ X.val = 19
 Y.val = 8
 Z.val = 25
 
-# key: middle C = 261.6
-pitch = 261.6
+root_hz = 261.6
 
 # tempo in beats per minute
 bpm = 240
@@ -208,5 +181,5 @@ s = Server().boot()  # booting pyo server
 s.start()
 
 while True:
-    note = Sine(freq=pulseAll(pitch), mul=0.05).out()
+    note = Sine(freq=pulseAll(root_hz=root_hz), mul=0.05).out()
     time.sleep(seconds)
