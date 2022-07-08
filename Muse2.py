@@ -50,19 +50,13 @@ class BinaryCounter:
     def pulse(self):
         length = self.length  # for convenience
 
-        def switch(digit):
-            if digit == 0:
-                return 1
-            else:
-                return 0
-
-        # detect stuck state
+        # detect overflow?
         if sum(self.digits) == length:
             self.digits = [0 for i in range(length)]
         else:
             for location in range(len(self.digits)):
                 if self.clock.val % (2**location) == 0:
-                    self.digits[location] = switch(self.digits[location])
+                    self.digits[location] = 1 - self.digits[location]
                 else:
                     pass
 
@@ -79,19 +73,10 @@ class TripleCounter:
         return str(self.digits)
 
     def pulse(self):
-        length = self.length  # this isn't getting used anywhere
-
-        def switch(digit):
-            if digit == 0:
-                return 1
-            else:
-                return 0
-
-        # now the main activity of the function
         # reset if everything is 1
         for location in range(len(self.digits)):
             if self.clock.val % (3 * (location + 1)) == 0:
-                self.digits[location] = switch(self.digits[location])
+                self.digits[location] = 1 - self.digits[location]
             else:
                 pass
 
