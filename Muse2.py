@@ -163,11 +163,10 @@ Y = Slider()
 Z = Slider()
 
 allSliders = [A, B, C, D, W, X, Y, Z]
-pitch = 261.6
 
 
 def pulseAll(
-    key=pitch,
+    key,
     sliderList=allSliders,
     stack=shiftRegister,
     clock=timer,
@@ -209,7 +208,7 @@ Y.val = 8
 Z.val = 25
 
 # key: middle C = 261.6
-pitch = 200
+pitch = 261.6
 
 # tempo in beats per minute
 bpm = 240
