@@ -12,7 +12,7 @@ Trovar description here: http://web.archive.org/web/20011118181946/http://richte
 
 With guidance from Donald Derek Haddad (https://donaldderek.com/)
 
-Reformatting and Python3 tweaks by T Morrill (https://tsmorrill.github.io/)
+Refactored by T Morrill (https://tsmorrill.github.io/)
 
 
 ## Operation

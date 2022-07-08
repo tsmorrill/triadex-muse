@@ -10,7 +10,7 @@ class Clock:
     def __str__(self):
         return str(self.val)
 
-    def pulse(self):
+    def trigger(self):
         self.val += 1
 
     def reset(self):
@@ -21,7 +21,7 @@ timer = Clock()  # one instance shared between all other objects
 # this could really just be a counter variable in the main loop
 
 
-class Stack:
+class Register:
     def __init__(self, length):
         self.length = length
         self.items = [random.randint(0, 1) for i in range(self.length)]
@@ -29,12 +29,12 @@ class Stack:
     def __str__(self):
         return str(self.items)
 
-    def pulse(self, item):
-        # trigger shift register
+    def write(self, item):
         self.items.insert(0, item)
         self.items.pop()
 
 
+# this is just bit twiddling the current value of the clock?
 class BinaryCounter:
     def __init__(self, length, clock=timer):
         self.length = length
@@ -44,7 +44,7 @@ class BinaryCounter:
     def __str__(self):
         return str(self.digits)
 
-    def pulse(self):
+    def trigger(self):
         length = self.length  # for convenience
 
         # detect overflow?
@@ -58,6 +58,7 @@ class BinaryCounter:
                     pass
 
 
+# this is just base-three twiddling the current value of the clock?
 class TripleCounter:
     def __init__(self, length, clock=timer):
         self.length = length
@@ -67,16 +68,14 @@ class TripleCounter:
     def __str__(self):
         return str(self.digits)
 
-    def pulse(self):
+    def trigger(self):
         # reset if everything is 1
         for location in range(len(self.digits)):
             if self.clock.val % (3 * (location + 1)) == 0:
                 self.digits[location] = 1 - self.digits[location]
-            else:
-                pass
 
 
-shiftRegister = Stack(31)
+shiftRegister = Register(31)
 counter1 = BinaryCounter(5)
 counter2 = TripleCounter(2)
 
@@ -95,26 +94,13 @@ class Slider:
         return str(self.val)
 
     def output(self):
-        outputList = [0, 1]  # off, on
-        for i in self.binaryCounter.digits:
-            outputList.append(i)
-        for i in self.tripleCounter.digits:
-            outputList.append(i)
-        for i in self.stack.items:
-            outputList.append(i)
+        outputList = [0, 1] + self.binaryCounter.digits + \
+            self.tripleCounter.digits + self.stack.items
         return outputList[self.val]
 
 
-def getNoteNum(inputList):
-    """Return a scale degree."""
-    # inputList should be binary, a list of the values of A through D sliders
-    num, exponent = 0, 0
-    for i in inputList:
-        num += i * (2**exponent)
-        exponent += 1
-    return num
-
-
+# tap locations for the contanenated registers
+# they could just be ints
 A = Slider()
 B = Slider()
 C = Slider()
@@ -127,7 +113,7 @@ Z = Slider()
 allSliders = [A, B, C, D, W, X, Y, Z]
 
 
-def pulseAll(
+def triggerAll(
     root_hz,
     sliderList=allSliders,
     stack=shiftRegister,
@@ -135,14 +121,14 @@ def pulseAll(
     binaryCounter=counter1,
     tripleCounter=counter2,
 ):
-    """Pulse everything and return a frequency in Hz."""
+    """Trigger everything and return a frequency in Hz."""
     a, b, c, d, w, x, y, z = (slider.output() for slider in sliderList)
 
-    clock.pulse()
-    counter1.pulse()
-    counter2.pulse()
+    clock.trigger()
+    counter1.trigger()
+    counter2.trigger()
 
-    stack.pulse((w + x + y + z) % 2)
+    stack.write((w + x + y + z) % 2)
 
     intervals = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 24]
     scale_degree = 8*d + 4*c + 2*b + a
@@ -168,7 +154,6 @@ Z.val = 25
 
 root_hz = 261.6
 
-# tempo in beats per minute
 bpm = 240
 
 """ End of user-operated variables """
@@ -181,5 +166,5 @@ s = Server().boot()  # booting pyo server
 s.start()
 
 while True:
-    note = Sine(freq=pulseAll(root_hz=root_hz), mul=0.05).out()
+    note = Sine(freq=triggerAll(root_hz=root_hz), mul=0.05).out()
     time.sleep(seconds)
