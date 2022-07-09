@@ -1,176 +1,62 @@
-import random
+from random import randint
 import time
 from pyo import Sine, Server
 
 
-class Clock:
-    def __init__(self):
-        self.val = 0
-
-    def __str__(self):
-        return str(self.val)
-
-    def trigger(self):
-        self.val += 1
-
-    def reset(self):
-        self.val = 0
-
-
-timer = Clock()  # one instance shared between all other objects
-# this could really just be a counter variable in the main loop
-
-
-class Register:
-    def __init__(self, length):
-        self.length = length
-        self.items = [random.randint(0, 1) for i in range(self.length)]
-
-    def __str__(self):
-        return str(self.items)
-
-    def write(self, item):
-        self.items.insert(0, item)
-        self.items.pop()
-
-
-# this is just bit twiddling the current value of the clock?
-class BinaryCounter:
-    def __init__(self, length, clock=timer):
-        self.length = length
-        self.digits = [0 for i in range(length)]
-        self.clock = clock
-
-    def __str__(self):
-        return str(self.digits)
-
-    def trigger(self):
-        length = self.length  # for convenience
-
-        # detect overflow?
-        if sum(self.digits) == length:
-            self.digits = [0 for i in range(length)]
-        else:
-            for location in range(len(self.digits)):
-                if self.clock.val % (2**location) == 0:
-                    self.digits[location] = 1 - self.digits[location]
-                else:
-                    pass
-
-
-# this is just base-three twiddling the current value of the clock?
-class TripleCounter:
-    def __init__(self, length, clock=timer):
-        self.length = length
-        self.digits = [0 for i in range(length)]
-        self.clock = clock
-
-    def __str__(self):
-        return str(self.digits)
-
-    # may have gone too zealous rewriting this part - check documentation
-    def trigger(self):
-        # reset if everything is 1
-        for location in range(len(self.digits)):
-            if self.clock.val % (3 * (location + 1)) == 0:
-                self.digits[location] = 1 - self.digits[location]
-
-
-shiftRegister = Register(31)
-counter1 = BinaryCounter(5)
-counter2 = TripleCounter(2)
-
-
-class Slider:
-    def __init__(
-        self, val=0, binaryCounter=counter1, tripleCounter=counter2, stack=shiftRegister
+def muse(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z):
+    """Emulate the Triadex Muse."""
+    if (
+        min(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) < 0
+        or max(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) > 40
     ):
-        # binaryCounter and stack are what the sliders will pull values from
-        self.val = val
-        self.binaryCounter = binaryCounter
-        self.tripleCounter = tripleCounter
-        self.stack = stack
+        raise ValueError("tap locations must be integers from 0 to 40.")
 
-    def __str__(self):
-        return str(self.val)
+    shift_register = [randint(0, 1) for _ in range(31)]
+    t = 0
 
-    def output(self):
-        outputList = (
-            [0, 1]
-            + self.binaryCounter.digits
-            + self.tripleCounter.digits
-            + self.stack.items
+    while True:
+
+        constant_taps = [0, 1]
+        bit_taps = [(t >> i) & 1 for i in range(5)]
+        tri_taps = [int(t % 12 > 5), int(t % 6 > 3)]
+        all_taps = constant_taps + shift_register + bit_taps + tri_taps
+
+        scale_degree = (
+            8 * all_taps[out_d]
+            + 4 * all_taps[out_c]
+            + 2 * all_taps[out_b]
+            + all_taps[out_a]
         )
-        return outputList[self.val]
+
+        semitones = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 24]
+
+        print(all_taps)
+        yield semitones[scale_degree]
+
+        bit = (
+            all_taps[feed_w] + all_taps[feed_x]
+            + all_taps[feed_y] + all_taps[feed_z]
+        ) % 2
+
+        shift_register.insert(0, bit)
+        shift_register.pop()
+
+        t += 1
 
 
-# tap locations for the concatanenated registers
-# they could just be ints
-A = Slider()
-B = Slider()
-C = Slider()
-D = Slider()
-W = Slider()
-X = Slider()
-Y = Slider()
-Z = Slider()
+if __name__ == "__main__":
+    semitone = muse(17, 17, 18, 19, 4, 19, 8, 25)
 
-# A, B, C, D - feedback tap locations
-# W, X, Y, Z - output tap locations
-allSliders = [A, B, C, D, W, X, Y, Z]
-
-
-# this should use yield
-def triggerAll(
-    root_hz,
-    sliderList=allSliders,
-    stack=shiftRegister,
-    clock=timer,
-    binaryCounter=counter1,
-    tripleCounter=counter2,
-):
-    """Trigger everything and return a frequency in Hz."""
-    a, b, c, d, w, x, y, z = (slider.output() for slider in sliderList)
-
-    clock.trigger()
-    counter1.trigger()
-    counter2.trigger()
-
-    stack.write((w + x + y + z) % 2)
-
-    intervals = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24, 24]
-    scale_degree = 8 * d + 4 * c + 2 * b + a
+    C_hz = 261.6
     half_step_ratio = 1.05946882217
-    noteFrequency = root_hz * half_step_ratio ** intervals[scale_degree]
-    print(scale_degree)
-    return noteFrequency
+    bpm = 240
+    seconds = 60.0 / bpm
 
+    s = Server().boot()
+    s.start()
 
-""" User-operated variables """
-
-# interval sliders
-A.val = 17
-B.val = 17
-C.val = 18
-D.val = 19
-
-# theme sliders
-W.val = 4
-X.val = 19
-Y.val = 8
-Z.val = 25
-
-root_hz = 261.6
-
-bpm = 240
-
-""" End of user-operated variables """
-
-seconds = 60.0 / bpm
-
-s = Server().boot()  # booting pyo server
-s.start()
-
-while True:
-    note = Sine(freq=triggerAll(root_hz=root_hz), mul=0.05).out()
-    time.sleep(seconds)
+    while True:
+        steps = next(semitone)
+        freq = C_hz * half_step_ratio**steps
+        note = Sine(freq=freq, mul=0.05).out()
+        time.sleep(seconds)
