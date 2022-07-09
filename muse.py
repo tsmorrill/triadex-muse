@@ -18,7 +18,7 @@ def muse(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z):
 
         constant_taps = [0, 1]
         bit_taps = [(t >> i) & 1 for i in range(5)]
-        tri_taps = [int(t % 12 > 5), int(t % 6 > 3)]
+        tri_taps = [int(t % 12 > 5), int(t % 6 > 2)]
         all_taps = constant_taps + shift_register + bit_taps + tri_taps
 
         scale_degree = (
