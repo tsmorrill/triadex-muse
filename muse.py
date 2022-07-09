@@ -7,7 +7,7 @@ def muse(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z):
     """Emulate the Triadex Muse."""
     if (
         min(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) < 0
-        or max(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) > 40
+        or max(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) > 39
     ):
         raise ValueError("tap locations must be integers from 0 to 40.")
 
@@ -45,7 +45,7 @@ def muse(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z):
 
 
 if __name__ == "__main__":
-    semitone = muse(17, 17, 18, 19, 4, 19, 8, 25)
+    semitone = muse(17, 38, 18, 19, 4, 19, 39, 25)
 
     C_hz = 261.6
     half_step_ratio = 1.05946882217
