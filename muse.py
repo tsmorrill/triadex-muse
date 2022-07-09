@@ -115,6 +115,8 @@ X = Slider()
 Y = Slider()
 Z = Slider()
 
+# A, B, C, D - feedback tap locations
+# W, X, Y, Z - output tap locations
 allSliders = [A, B, C, D, W, X, Y, Z]
 
 
