@@ -9,7 +9,7 @@ def muse(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z):
         min(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) < 0
         or max(out_a, out_b, out_c, out_d, feed_w, feed_x, feed_y, feed_z) > 39
     ):
-        raise ValueError("tap locations must be integers from 0 to 40.")
+        raise ValueError("tap locations must be integers from 0 to 39.")
 
     shift_register = [randint(0, 1) for _ in range(31)]
     t = 0
